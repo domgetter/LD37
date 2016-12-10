@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour {
 	private bool up_holding = false;
 	private bool down_holding = false;
 	private bool re_enter_holding = false;
+	private Vector3 previous_position;
 
 	public Stack<GameObject> room_stack;
 	public GameObject room_prefab;
@@ -24,6 +25,8 @@ public class PlayerController : MonoBehaviour {
 		room_stack = new Stack<GameObject> ();
 		rigid_body_component = GetComponent<Rigidbody2D> ();
 		room_stack.Push(GameObject.Find ("room"));
+		gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().starting_location;
+		previous_position = gameObject.transform.position;
 	}
 	
 	// Update is called once per frame
@@ -64,6 +67,11 @@ public class PlayerController : MonoBehaviour {
 				room_stack.Peek ().SetActive (true);
 			}
 		}
+
+		if (other.gameObject.CompareTag ("Wall")) {
+			Debug.Log ("Bumped into wall");
+			gameObject.transform.position = previous_position;
+		}
 	}
 
 	void move_player() {
@@ -97,19 +105,25 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		if (!re_enter) {
+			Vector3 new_position = gameObject.transform.position;
 			if (right && !right_holding) {
 				right_holding = true;
-				gameObject.transform.position += Vector3.right;
+				new_position = gameObject.transform.position + Vector3.right;
 			} else if (left && !left_holding) {
 				left_holding = true;
-				gameObject.transform.position += Vector3.left;
+				new_position = gameObject.transform.position + Vector3.left;
 			} else if (up && !up_holding) {
 				up_holding = true;
-				gameObject.transform.position += Vector3.up;
+				new_position = gameObject.transform.position + Vector3.up;
 			} else if (down && !down_holding) {
 				down_holding = true;
-				gameObject.transform.position += Vector3.down;
+				new_position = gameObject.transform.position + Vector3.down;
 			}
+
+			previous_position = gameObject.transform.position;
+			gameObject.transform.position = new_position;
+			
+
 			room_stack.Peek().GetComponent<PlayerLocation>().location = new Vector2(gameObject.transform.position.x, gameObject.transform.position.y);
 
 			if (!right) {
