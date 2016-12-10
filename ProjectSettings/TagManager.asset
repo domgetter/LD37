@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Pick Up
   - Exit
+  - Wall
   layers:
   - Default
   - TransparentFX
