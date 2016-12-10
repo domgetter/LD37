@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour {
 
 	public Stack<GameObject> room_stack;
 	public Text recursion_level_display;
+	public Text pickup_count_display;
 	public GameObject room_prefab;
 
 	public int bananas = 0;
@@ -29,6 +30,7 @@ public class PlayerController : MonoBehaviour {
 		gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().starting_location;
 		previous_position = gameObject.transform.position;
 		recursion_level_display.text = currentRecursionLevelDisplay(room_stack);
+		pickup_count_display.text = currentPickupCountDisplay (bananas);
 	}
 	
 	// Update is called once per frame
@@ -52,24 +54,35 @@ public class PlayerController : MonoBehaviour {
 		if(other.gameObject.CompareTag("Pick Up")) {
 			other.gameObject.SetActive (false);
 			bananas++;
+			pickup_count_display.text = currentPickupCountDisplay (bananas);
 		}
 
 		if (other.gameObject.CompareTag ("Exit")) {
 			// destory current room (pop off stack)
-			Debug.Log(room_stack.Count());
-			Destroy(room_stack.Pop());
 
-			if (room_stack.Count () == 0) {
-				Debug.Log ("you win!");
+			// if we meet the requirements, allow leaving
+			if (other.gameObject.GetComponent<ExitController>().can_leave(bananas)) {
+				Destroy (room_stack.Pop ());
+
+				if (room_stack.Count () == 0) {
+					Debug.Log ("you win!");
+				} else {
+
+					// move player to previous location
+					gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().location;
+					// reactivate previous
+					room_stack.Peek ().SetActive (true);
+					// change recursion level display
+					recursion_level_display.text = currentRecursionLevelDisplay (room_stack);
+				}
 			} else {
-
-				// move player to previous location
-				gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().location;
-				// reactivate previous
-				room_stack.Peek ().SetActive (true);
-				// change recursion level display
-				recursion_level_display.text = currentRecursionLevelDisplay(room_stack);
+				// otherwise, don't let the player move forward
+				gameObject.transform.position = previous_position;
 			}
+
+
+			// also, later, inform the player that they cant do that yet
+
 		}
 
 		if (other.gameObject.CompareTag ("Wall")) {
@@ -130,8 +143,9 @@ public class PlayerController : MonoBehaviour {
 			previous_position = gameObject.transform.position;
 			gameObject.transform.position = new_position;
 			
-
-			room_stack.Peek().GetComponent<PlayerLocation>().location = new Vector2(gameObject.transform.position.x, gameObject.transform.position.y);
+			if (room_stack.Count () > 0) {
+				room_stack.Peek ().GetComponent<PlayerLocation> ().location = new Vector2 (gameObject.transform.position.x, gameObject.transform.position.y);
+			}
 
 			if (!right) {
 				right_holding = false;
@@ -153,5 +167,9 @@ public class PlayerController : MonoBehaviour {
 
 	string currentRecursionLevelDisplay(Stack<GameObject> room_stack) {
 		return "R-Level: " + (room_stack.Count () - 1).ToString ();
+	}
+
+	string currentPickupCountDisplay(int item_count) {
+		return "Item count: " + item_count.ToString();
 	}
 }
