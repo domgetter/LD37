@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
 
 	public float speed;
 	public float max_speed;
 
-	private Rigidbody2D rigid_body_component;
+	//private Rigidbody2D rigid_body_component;
 	private bool right_holding = false;
 	private bool left_holding = false;
 	private bool up_holding = false;
@@ -17,16 +18,17 @@ public class PlayerController : MonoBehaviour {
 	private Vector3 previous_position;
 
 	public Stack<GameObject> room_stack;
+	public Text recursion_level_display;
 	public GameObject room_prefab;
 
 	public int bananas = 0;
 	// Use this for initialization
 	void Start () {
 		room_stack = new Stack<GameObject> ();
-		rigid_body_component = GetComponent<Rigidbody2D> ();
 		room_stack.Push(GameObject.Find ("room"));
 		gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().starting_location;
 		previous_position = gameObject.transform.position;
+		recursion_level_display.text = currentRecursionLevelDisplay(room_stack);
 	}
 	
 	// Update is called once per frame
@@ -65,6 +67,8 @@ public class PlayerController : MonoBehaviour {
 				gameObject.transform.position = room_stack.Peek ().GetComponent<PlayerLocation> ().location;
 				// reactivate previous
 				room_stack.Peek ().SetActive (true);
+				// change recursion level display
+				recursion_level_display.text = currentRecursionLevelDisplay(room_stack);
 			}
 		}
 
@@ -99,6 +103,9 @@ public class PlayerController : MonoBehaviour {
 
 			// move player to starting location
 			gameObject.transform.position = room_stack.Peek().GetComponent<PlayerLocation>().starting_location;
+
+			// set recursion level display to one deeper
+			recursion_level_display.text = currentRecursionLevelDisplay(room_stack);
 
 			//room_stack[0].GetComponent<PlayerLocation>().location.x = 4;
 			//Debug.Log (room_stack.Peek().GetComponent<PlayerLocation>().location.x);
@@ -142,5 +149,9 @@ public class PlayerController : MonoBehaviour {
 				re_enter_holding = false;
 			}
 		}
+	}
+
+	string currentRecursionLevelDisplay(Stack<GameObject> room_stack) {
+		return "R-Level: " + (room_stack.Count () - 1).ToString ();
 	}
 }
