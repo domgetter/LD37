@@ -1,8 +1,0 @@
-XXXXXXXX
-X......X
-X..B...X
-X......X
-X......X
-X.P....E
-X......X
-XXXXXXXX
